@@ -1,11 +1,11 @@
+import { lastValueFrom } from 'rxjs';
 import 'reflect-metadata';
 import { IEvent, IEventPublisher } from '@nestjs/cqrs';
 import { EVENT_NAME, TRANSPORT, TRANSPORT_EVENT_BUS_PATTERN } from '../constants/transport.event-bus.constants';
-import { ClientProxy } from '@nestjs/microservices';
+import { ClientProxy, Transport } from '@nestjs/microservices';
 import { ITransportPublisherEventBus } from '../interfaces/transport.publisher.event-bus.interface';
 import { ITransportDataEventBus } from '../interfaces/transport.data.event-bus.interface';
 import { Logger, LoggerService } from '@nestjs/common/services/logger.service';
-import { Transport } from '@nestjs/microservices';
 
 export function Publisher(TYPE: Transport) {
     return <T extends new(...args: any[]) => {}>(constructor: T) => {
@@ -28,7 +28,7 @@ export function Publisher(TYPE: Transport) {
 
             public async send(data: ITransportDataEventBus) {
                 try {
-                    await this.client.send(TRANSPORT_EVENT_BUS_PATTERN, data).toPromise();
+                    await lastValueFrom(this.client.send(TRANSPORT_EVENT_BUS_PATTERN, data));
                 } catch (err) {
                     if (!this.logger) {
                         (new Logger(ClientProxy.name)).error(err);
